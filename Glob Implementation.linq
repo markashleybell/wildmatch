@@ -134,19 +134,19 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                 {
                     // It's only a single star, so use PATHNAME to determine whether to match slashes
                     match_slash = !flags.HasFlag(MatchFlags.PATHNAME);
-                }
-				
-				if (p_ch == '*' && p < p_EOP)
-				{
-					p_ch = pattern[++p]; 
-					t_ch = text[++t];
-				}
 
+					// Advance one character (consume the star)
+					if (p < p_EOP)
+					{
+						p_ch = pattern[++p];
+						t_ch = text[++t];
+					}
+				}
+				
                 // If we're at the end of the pattern
                 if (p == p_EOP)
                 {
                     // If there was only one star and PATHNAME was set, match_slash will be false
-                    
                     // Trailing "*" matches only if there are no more slash characters
                     if (!match_slash && text.Contains('/'))
                         return NOMATCH;
@@ -156,7 +156,9 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				}
 				else if  (!match_slash && p_ch == '/') 
 				{
+					// We're at a slash, so consume the text until the next slash
 					int nextSlashIndex = Array.IndexOf(text, '/', t);
+					// If there aren't any more slashes, this can't be a match
 					if (nextSlashIndex == -1)
 						return NOMATCH;
 						
@@ -164,10 +166,10 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 					break;
 				}
 
-				
-				
                 int match;
                 
+				// Try to match the remaining text
+				// Each time the match fails, remove the first character from the text and retry
                 while (true)
                 {
                     if(t == t_len)
