@@ -5,20 +5,27 @@ void Main()
 	var patterns = new List<string> {
 		"te*t",
 		"tes*",
+		"test/*/two",
 		"test/**/two",
 		"test/**",
-		"**/two"
+		"**/two",
+		"test/one/*/three/**"
 	};
 
 	var texts = new List<string> {
 		"test",
 		"test/one/tmp/two",
-		"test/one/tmp/fish/two"
+		"test/one/tmp/fish/two",
+		"test/one/two/three/four"
 	};
-
-	//MatchPattern(patterns[2], texts[1]).Dump();
-
-	texts.ForEach(t => patterns.ForEach(p => MatchPattern(p, t).Dump(string.Format("pat: {0}, txt: {1}", p, t))));
+	
+	texts.ForEach(t => patterns.ForEach(p => { 
+		var match = MatchPattern(p, t);
+		var m = (match == MATCH) ? "MATCH" : match.ToString(); 
+		string.Format("{0} -> {1} = {2}", t, p, m).Dump(); 
+	}));
+	
+	// MatchPattern("test/one/*/three/**", "test/one/two/three/four").Dump();
 }
 
 static int ABORT_MALFORMED = 2;
@@ -121,6 +128,12 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                     // It's only a single star, so use PATHNAME to determine whether to match slashes
                     match_slash = !flags.HasFlag(MatchFlags.PATHNAME);
                 }
+				
+				if (p_ch == '*' && p < p_EOP)
+				{
+					p_ch = pattern[++p]; 
+					t_ch = text[++t];
+				}
 
                 // If we're at the end of the pattern
                 if (p == p_EOP)
@@ -136,7 +149,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				}
 				else if  (!match_slash && p_ch == '/') 
 				{
-					int nextSlashIndex = Array.IndexOf(text, '/');
+					int nextSlashIndex = Array.IndexOf(text, '/', t);
 					if (nextSlashIndex == -1)
 						return NOMATCH;
 						
@@ -144,11 +157,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 					break;
 				}
 
-				if (p_ch == '*')
-				{
-					p++; 
-					t++;
-				}
+				
 				
                 int match;
                 
