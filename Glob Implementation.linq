@@ -10,12 +10,13 @@ void Main()
 
 	var texts = new List<string> {
 		"test",
-		"test/one/tmp/two"
+		"test/one/tmp/two",
+		"test/one/tmp/fish/two"
 	};
 
-	MatchPattern(patterns[1], texts[0]).Dump();
+	//MatchPattern(patterns[2], texts[1]).Dump();
 
-	// texts.ForEach(t => patterns.ForEach(p => MatchPattern(p, t).Dump(string.Format("pat: {0}, txt: {1}", p, t))));
+	texts.ForEach(t => patterns.ForEach(p => MatchPattern(p, t).Dump(string.Format("pat: {0}, txt: {1}", p, t))));
 }
 
 static int ABORT_MALFORMED = 2;
@@ -54,11 +55,14 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
     int t_len = text.Length;
     int t_EOP = t_len - 1;
 	
-	("pat: " + new String(pattern, p, p_len - p)).Dump();
-	("txt: " + new String(text, t, t_len - t)).Dump();
+//	("pat: " + new String(pattern, p, p_len - p)).Dump();
+//	("txt: " + new String(text, t, t_len - t)).Dump();
 
     for (; p < p_len; p++, t++)
     {
+		if (t > t_EOP)
+			return NOMATCH;
+
         char p_ch = pattern[p];
         char t_ch = text[t];
         
@@ -137,14 +141,18 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 					t = nextSlashIndex;
 					break;
 				}
-				
-				if(p_ch == '*') t++;
 
+				if (p_ch == '*')
+				{
+					p++; 
+					t++;
+				}
+				
                 int match;
                 
                 while (true)
                 {
-                    if(t == t_EOP)
+                    if(t == t_len)
                         break;
 
 					if ((match = Match(pattern, text, p, t, flags)) != NOMATCH)
