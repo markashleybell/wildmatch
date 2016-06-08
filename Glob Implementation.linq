@@ -5,7 +5,9 @@ void Main()
 	var patterns = new List<string> {
 		"te*t",
 		"tes*",
-		"test/**/two"
+		"test/**/two",
+		"test/**",
+		"**/two"
 	};
 
 	var texts = new List<string> {
