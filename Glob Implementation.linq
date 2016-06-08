@@ -7,11 +7,13 @@ void Main()
 		"tes*",
 		"t*s*",
 		"test/*/two",
+		"test/*/*/two",
 		"test/**/two",
 		"test/**",
 		"**/two",
 		"test/one/*/three/**",
 		"test/one/*/th*e/**",
+		"test/*",
 		"*.txt"
 	};
 
@@ -25,12 +27,19 @@ void Main()
 		"test.txtfile"
 	};
 	
-	texts.ForEach(t => patterns.ForEach(p => { 
-		var match = MatchPattern(p, t);
-		var m = (match == MATCH) ? "MATCH" : match.ToString(); 
-		if(match == MATCH)
-			string.Format("{0} -> {1} = {2}", t, p, m).Dump(); 
-	}));
+	var divider = "---------------------------------------------------------";
+	
+	patterns.ForEach(p => {
+		p.Dump();
+
+		texts.ForEach(t => { 
+			var match = MatchPattern(p, t);
+			var m = (match == MATCH) ? "MATCHES" : match.ToString(); 
+			if(match == MATCH)
+				string.Format("{0} {1}", m, t).Dump(); 
+		});
+		divider.Dump();
+	});
 	
 	// MatchPattern("test/one/*/three/**", "test/one/two/three/four").Dump();
 }
