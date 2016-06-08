@@ -5,24 +5,31 @@ void Main()
 	var patterns = new List<string> {
 		"te*t",
 		"tes*",
+		"t*s*",
 		"test/*/two",
 		"test/**/two",
 		"test/**",
 		"**/two",
-		"test/one/*/three/**"
+		"test/one/*/three/**",
+		"test/one/*/th*e/**",
+		"*.txt"
 	};
 
 	var texts = new List<string> {
 		"test",
 		"test/one/tmp/two",
 		"test/one/tmp/fish/two",
-		"test/one/two/three/four"
+		"test/one/two/three/four",
+		"test.txt",
+		"test/test.txt",
+		"test.txtfile"
 	};
 	
 	texts.ForEach(t => patterns.ForEach(p => { 
 		var match = MatchPattern(p, t);
 		var m = (match == MATCH) ? "MATCH" : match.ToString(); 
-		string.Format("{0} -> {1} = {2}", t, p, m).Dump(); 
+		if(match == MATCH)
+			string.Format("{0} -> {1} = {2}", t, p, m).Dump(); 
 	}));
 	
 	// MatchPattern("test/one/*/three/**", "test/one/two/three/four").Dump();
