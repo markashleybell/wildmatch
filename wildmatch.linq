@@ -17,6 +17,7 @@ void Main()
 		"*.txt",
         "**/test",
         "**/sub2/**.txt",
+        "**/sub2/*.txt",
         "sub1/**/test"
 	};
 
@@ -180,7 +181,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                         match_slash = true;
                     }
                     // If the character before the first star is either the beginning of the pattern or a slash
-                    else if (pre_star_ch == '\0' || pre_star_ch == '/' && p == p_EOP || p_ch == '/')
+                    else if ((pre_star_ch == '\0' || pre_star_ch == '/') && (p == p_EOP || p_ch == '/'))
 					{
 						if (p_ch == '/' && Match(pattern, text, p + 1, t, flags) == MATCH)
 							return MATCH;
