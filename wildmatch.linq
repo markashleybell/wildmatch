@@ -32,21 +32,71 @@ void Main()
         "sub1/sub2/test.txt"
 	};
 	
-	var divider = "---------------------------------------------------------";
+	var divider = "------------------------------------------------";
+    var br = Environment.NewLine;
 	
 	patterns.ForEach(p => {
+        br.Dump();
 		p.Dump();
-
+        divider.Dump();
 		texts.ForEach(t => { 
 			var match = MatchPattern(p, t);
-			var m = (match == MATCH) ? "MATCHES" : match.ToString(); 
-			if(match == MATCH)
-				string.Format("{0} {1}", m, t).Dump(); 
+            var refmatch = ReferenceMatchPattern(p, t);
+
+            if (match != refmatch || (match == MATCH && refmatch == MATCH))
+            {
+                var m = (match == MATCH) ? "MATCHES" : match.ToString();
+                var rm = (refmatch == MATCH) ? "MATCHES" : refmatch.ToString();
+                string.Format("prt -> {0} {1}", m, t).Dump();
+                string.Format("ref -> {0} {1}", rm, t).Dump();
+                
+                divider.Dump();
+            }
 		});
-		divider.Dump();
 	});
 	
 	// MatchPattern("test/one/*/three/**", "test/one/two/three/four").Dump();
+}
+
+static string basePath = Path.GetDirectoryName(Util.CurrentQueryPath);
+
+public Process CreateProcess(string executableFilename, string arguments, string workingDirectory)
+{
+    return new Process {
+        EnableRaisingEvents = true,
+        StartInfo = new ProcessStartInfo
+        {
+            FileName = executableFilename,
+            Arguments = arguments,
+            WorkingDirectory = workingDirectory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        }
+    };
+}
+
+public int ReferenceMatchPattern(string pattern, string text)
+{
+    var workingDirectory = basePath + @"\c";
+    
+    var log = new List<string>();
+    
+    using (var build = CreateProcess(workingDirectory + @"\wm.exe", pattern + " " + text, workingDirectory))
+    {
+        build.Start();
+
+        build.OutputDataReceived += (sender, e) => log.Add("0> " + e.Data);
+        build.BeginOutputReadLine();
+
+        build.ErrorDataReceived += (sender, e) => log.Add("1> " + e.Data);
+        build.BeginErrorReadLine();
+
+        build.WaitForExit();
+        
+        return build.ExitCode;
+    }
 }
 
 static int ABORT_MALFORMED = 2;
