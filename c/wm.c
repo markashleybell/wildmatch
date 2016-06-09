@@ -11,4 +11,6 @@ main(int argc, char **argv)
 
     int match = wildmatch(argv[1], argv[2], WM_PATHNAME, NULL);
     printf("%i\n", match);
+
+    return match;
 }
