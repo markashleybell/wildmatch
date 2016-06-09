@@ -45,8 +45,8 @@ void Main()
 
             if (match != refmatch || (match == MATCH && refmatch == MATCH))
             {
-                var m = (match == MATCH) ? "MATCHES" : match.ToString();
-                var rm = (refmatch == MATCH) ? "MATCHES" : refmatch.ToString();
+                var m = (match == MATCH) ? "MATCH" : match.ToString();
+                var rm = (refmatch == MATCH) ? "MATCH" : refmatch.ToString();
                 string.Format("prt -> {0} {1}", m, t).Dump();
                 string.Format("ref -> {0} {1}", rm, t).Dump();
                 
