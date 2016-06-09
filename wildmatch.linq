@@ -14,7 +14,10 @@ void Main()
 		"test/one/*/three/**",
 		"test/one/*/th*e/**",
 		"test/*",
-		"*.txt"
+		"*.txt",
+        "**/test",
+        "**/sub2/**.txt",
+        "sub1/**/test"
 	};
 
 	var texts = new List<string> {
@@ -24,7 +27,9 @@ void Main()
 		"test/one/two/three/four",
 		"test.txt",
 		"test/test.txt",
-		"test.txtfile"
+		"test.txtfile",
+        "sub1/test",
+        "sub1/sub2/test.txt"
 	};
 	
 	var divider = "---------------------------------------------------------";
