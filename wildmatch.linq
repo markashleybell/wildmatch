@@ -147,7 +147,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
     for (; p < p_len; p++, t++)
     {
 		if (t > t_EOP)
-			return NOMATCH;
+			return ABORT_ALL;
 
         char p_ch = pattern[p];
         char t_ch = text[t];
