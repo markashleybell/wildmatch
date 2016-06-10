@@ -36,27 +36,46 @@ void Main()
 	var divider = "------------------------------------------------";
     var br = Environment.NewLine;
 	
-	patterns.ForEach(p => {
-        br.Dump();
-		p.Dump();
-        divider.Dump();
-		texts.ForEach(t => { 
-			var match = MatchPattern(p, t);
-            var refmatch = ReferenceMatchPattern(p, t);
+    var runAllTests = false;
+    var logMatches = false;
+    
+    if(runAllTests) 
+    {
+        var output = new List<string>();
+        
+    	patterns.ForEach(p => {
+            var results = new List<string>();
+            
+    		texts.ForEach(t => { 
+    			var match = MatchPattern(p, t);
+                var refmatch = ReferenceMatchPattern(p, t);
+    
+                if (match != refmatch || (logMatches && (match == MATCH && refmatch == MATCH)))
+                {
+                    var m = (match == MATCH) ? "MATCH" : match.ToString();
+                    var rm = (refmatch == MATCH) ? "MATCH" : refmatch.ToString();
+                    results.Add(string.Format("prt -> {0} {1}", m, t));
+                    results.Add(string.Format("ref -> {0} {1}", rm, t));
+                    results.Add(divider);
+                }
+    		});
 
-            if (match != refmatch || (match == MATCH && refmatch == MATCH))
+            if (results.Count > 0)
             {
-                var m = (match == MATCH) ? "MATCH" : match.ToString();
-                var rm = (refmatch == MATCH) ? "MATCH" : refmatch.ToString();
-                string.Format("prt -> {0} {1}", m, t).Dump();
-                string.Format("ref -> {0} {1}", rm, t).Dump();
-                
-                divider.Dump();
+                output.Add(br);
+                output.Add(p);
+                output.Add(divider);
+                output.AddRange(results);
             }
-		});
-	});
-	
-	// MatchPattern("test/one/*/three/**", "test/one/two/three/four").Dump();
+    	});
+        
+        string.Join(br, output).Dump();
+    }
+
+    MatchPattern("**/test", "test").Dump();
+
+//    MatchPattern("te*t", "test.txtfile").Dump(); // Should not(?!) be match
+//    MatchPattern("test/*", "test/test.txt").Dump(); // Should be match
 }
 
 static string basePath = Path.GetDirectoryName(Util.CurrentQueryPath);
