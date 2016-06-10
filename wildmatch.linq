@@ -144,16 +144,20 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 //	("pat: " + new String(pattern, p, p_len - p)).Dump();
 //	("txt: " + new String(text, t, t_len - t)).Dump();
 
-    for (; p < p_len; p++, t++)
-    {
-		if (t > t_EOP)
-			return ABORT_ALL;
+    char p_ch;
 
-        char p_ch = pattern[p];
-        char t_ch = text[t];
-        
+    for (; p < p_len && (p_ch = pattern[p]) != -1; p++, t++)
+    {
+        int match;
         bool match_slash;
         
+        char t_ch;
+        
+		if (t == t_len && p_ch != '*')
+			return ABORT_ALL;
+            
+        t_ch = text[t];
+
         switch (p_ch)
         {
             // Escape character: require literal match of next char
@@ -173,22 +177,23 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
             // Match any character unless PATHNAME flag is set, then match any char except slash
             case '*': 
                 // If the *next* character is a star as well...
-                if ((p + 1) < p_len && pattern[p + 1] == '*')
+                if ((++p) < p_len && pattern[p] == '*')
                 {
                     // Figure out what the character *before* the first star is
                     // (using null char to represent the beginning of the pattern)
-                    char pre_star_ch = (p - 1) >= 0 ? pattern[p - 1] : '\0';
+                    char pre_star_ch = (p - 2) >= 0 ? pattern[p - 2] : '\0';
                     // Advance through the pattern until we get to something which *isn't* a star
-                    while (p < p_EOP && (p_ch = pattern[++p]) == '*') { }
+                    while ((++p) < p_len && pattern[p] == '*') { }
                     // If PATHNAME isn't set, a single star also matches slashes
                     if (!flags.HasFlag(MatchFlags.PATHNAME))
                     {
                         match_slash = true;
                     }
-                    // If the character before the first star is either the beginning of the pattern or a slash
-                    else if ((pre_star_ch == '\0' || pre_star_ch == '/') && (p == p_EOP || p_ch == '/'))
+                    // If the character before the first star is either the beginning of the pattern or a slash,
+                    // and the character after the last star is either the end of the pattern or a slash
+                    else if ((pre_star_ch == '\0' || pre_star_ch == '/') && (p == p_len || pattern[p] == '/'))
 					{
-						if (p_ch == '/' && Match(pattern, text, p + 1, t, flags) == MATCH)
+						if (pattern[0] == '/' && Match(pattern, text, p + 1, t, flags) == MATCH)
 							return MATCH;
 
 						match_slash = true;
@@ -204,17 +209,10 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                 {
                     // It's only a single star, so use PATHNAME to determine whether to match slashes
                     match_slash = !flags.HasFlag(MatchFlags.PATHNAME);
-
-					// Advance one character (consume the star)
-					if (p < p_EOP)
-					{
-						p_ch = pattern[++p];
-						t_ch = text[++t];
-					}
 				}
 				
                 // If we're at the end of the pattern
-                if (p == p_EOP)
+                if (p == p_len)
                 {
                     // If there was only one star and PATHNAME was set, match_slash will be false
                     // Trailing "*" matches only if there are no more slash characters
@@ -224,7 +222,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                     // Trailing "**" matches everything
                     return MATCH;
 				}
-				else if  (!match_slash && p_ch == '/') 
+				else if  (!match_slash && pattern[p] == '/') 
 				{
 					// We're at a slash, so consume the text until the next slash
 					int nextSlashIndex = Array.IndexOf(text, '/', t);
@@ -235,25 +233,22 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 					t = nextSlashIndex;
 					break;
 				}
-
-                int match;
                 
 				// Try to match the remaining text
 				// Each time the match fails, remove the first character from the text and retry
                 while (true)
                 {
-                    if(t == t_len)
+                    if(t == t_EOP)
                         break;
 
                     // Try to advance faster when an asterisk is followed by a literal. 
                     // We know in this case that the string before the literal must belong to "*".
                     // If match_slash is false, do not look past the first slash as it cannot belong to '*'.
-                    if (!IsGlobSpecial(p_ch))
+                    if (!IsGlobSpecial(pattern[p]))
                     {
-                        while (t < t_len && (match_slash || t_ch != '/'))
+                        p_ch = pattern[p];
+                        while (t < t_len && ((t_ch = text[t]) != '/' || match_slash))
                         {
-                            t_ch = text[t];
-                            
                             if (t_ch == p_ch)
                                 break;
                                 
@@ -273,7 +268,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 						return ABORT_TO_STARSTAR;
 					}
 					
-					t++;
+                    t_ch = text[++t];
                 }
                 
                 return ABORT_ALL;
