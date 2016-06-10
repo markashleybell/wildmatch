@@ -36,7 +36,7 @@ void Main()
 	var divider = "------------------------------------------------";
     var br = Environment.NewLine;
 	
-    var runAllTests = false;
+    var runAllTests = true;
     var logMatches = false;
     
     if(runAllTests) 
@@ -71,11 +71,6 @@ void Main()
         
         string.Join(br, output).Dump();
     }
-
-    MatchPattern("**/test", "test").Dump();
-
-//    MatchPattern("te*t", "test.txtfile").Dump(); // Should not(?!) be match
-//    MatchPattern("test/*", "test/test.txt").Dump(); // Should be match
 }
 
 static string basePath = Path.GetDirectoryName(Util.CurrentQueryPath);
