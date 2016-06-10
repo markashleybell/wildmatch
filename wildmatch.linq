@@ -235,7 +235,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                 {
                     // If there was only one star and PATHNAME was set, match_slash will be false
                     // Trailing "*" matches only if there are no more slash characters
-                    if (!match_slash && text.Contains('/'))
+                    if (!match_slash && Array.IndexOf(text, '/', t) != -1)
                         return NOMATCH;
                     
                     // Trailing "**" matches everything
