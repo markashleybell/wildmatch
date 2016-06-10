@@ -212,7 +212,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                     // and the character after the last star is either the end of the pattern or a slash
                     else if ((pre_star_ch == '\0' || pre_star_ch == '/') && (p == p_len || pattern[p] == '/'))
 					{
-						if (pattern[0] == '/' && Match(pattern, text, p + 1, t, flags) == MATCH)
+						if ((p == p_len || pattern[p] == '/') && Match(pattern, text, p + 1, t, flags) == MATCH)
 							return MATCH;
 
 						match_slash = true;
