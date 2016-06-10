@@ -123,6 +123,11 @@ public enum MatchFlags
     PATHNAME = 2
 }
 
+public bool IsGlobSpecial(char c)
+{
+    return c == '*' || c == '?' || c == '[' || c == '\\';
+}
+
 public int MatchPattern(string pattern, string text)
 {
     return Match(pattern.ToCharArray(), text.ToCharArray(), 0, 0, MatchFlags.PATHNAME);
@@ -240,7 +245,25 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                     if(t == t_len)
                         break;
 
-					if ((match = Match(pattern, text, p, t, flags)) != NOMATCH)
+                    // Try to advance faster when an asterisk is followed by a literal. 
+                    // We know in this case that the string before the literal must belong to "*".
+                    // If match_slash is false, do not look past the first slash as it cannot belong to '*'.
+                    if (!IsGlobSpecial(p_ch))
+                    {
+                        while (t < t_len && (match_slash || t_ch != '/'))
+                        {
+                            t_ch = text[t];
+                            
+                            if (t_ch == p_ch)
+                                break;
+                                
+                            t++;
+                        }
+                        if (t_ch != p_ch)
+                            return NOMATCH;
+                    }
+
+                    if ((match = Match(pattern, text, p, t, flags)) != NOMATCH)
 					{
 						if(!match_slash || match != ABORT_TO_STARSTAR)
 							return match;
