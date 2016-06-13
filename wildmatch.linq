@@ -196,6 +196,11 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
             
         t_ch = text[t];
 
+        if (flags.HasFlag(MatchFlags.CASEFOLD) && Char.IsUpper(t_ch))
+            t_ch = Char.ToLower(t_ch);
+        if (flags.HasFlag(MatchFlags.CASEFOLD) && Char.IsUpper(p_ch))
+            p_ch = Char.ToLower(p_ch);
+
         switch (p_ch)
         {
             // Escape character: require literal match of next char
@@ -285,8 +290,15 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                     if (!IsGlobSpecial(pattern[p]))
                     {
                         p_ch = pattern[p];
+                        
+                        if (flags.HasFlag(MatchFlags.CASEFOLD) && Char.IsUpper(p_ch))
+                            p_ch = Char.ToLower(p_ch);
+                            
                         while (t < t_len && ((t_ch = text[t]) != '/' || match_slash))
                         {
+                            if (flags.HasFlag(MatchFlags.CASEFOLD) && Char.IsUpper(t_ch))
+                                t_ch = Char.ToLower(t_ch);
+                                
                             if (t_ch == p_ch)
                                 break;
                                 
