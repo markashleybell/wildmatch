@@ -23,7 +23,8 @@ void Main()
         "test/[^b]at/test.txt",
         "test/[!b]at/test.txt",
         "test/[[:alnum:]]at/test.txt",
-        "test/[a-b]at/test.txt"
+        "test/[a-b]at/test.txt",
+        "[Bb]in"
 	};
 
 	var texts = new List<string> {
@@ -39,17 +40,19 @@ void Main()
         "sub1/sub2/test.txt",
         "test/cat/test.txt",
         "test/bag/test.txt",
-        "test/bat/test.txt"
+        "test/bat/test.txt",
+        "bin",
+        "test1/bin"
 	};
 	
 	var divider = "------------------------------------------------";
     var br = Environment.NewLine;
 	
     var runAllTests = true;
-    var logMatches = false;
-    var logNonMatches = false;
+    var logMatches = true;
+    var logNonMatches = true;
     
-    var flags = MatchFlags.PATHNAME | MatchFlags.CASEFOLD;
+    var flags = MatchFlags.PATHNAME; // | MatchFlags.CASEFOLD;
     
     if(runAllTests) 
     {
