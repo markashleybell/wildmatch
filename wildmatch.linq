@@ -130,7 +130,7 @@ public enum MatchFlags
     /// <summary>
     /// If set, pattern matches are case-insensitive
     /// </summary>
-    IGNORE_CASE = 1,
+    CASEFOLD = 1,
     /// <summary>
     /// If set, single asterisks in patterns should not match path slashes
     /// </summary>
@@ -140,6 +140,11 @@ public enum MatchFlags
 public bool IsGlobSpecial(char c)
 {
     return c == '*' || c == '?' || c == '[' || c == '\\';
+}
+
+public bool CC_EQ(char c, int len, string @class)
+{
+	throw new NotImplementedException();
 }
 
 public int MatchPattern(string pattern, string text)
@@ -162,10 +167,10 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 
     for (; p < p_len && (p_ch = pattern[p]) != -1; p++, t++)
     {
-        int match;
+        int match, negated;
         bool match_slash;
         
-        char t_ch;
+        char t_ch, prev_ch;
         
 		if (t == t_len && p_ch != '*')
 			return ABORT_ALL;
@@ -286,6 +291,148 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                 }
                 
                 return ABORT_ALL;
+			case '[':
+				p_ch = pattern[++p];
+				
+				negated = (p_ch == '^') ? 1 : 0;
+
+				if (negated == 1)
+					p_ch = pattern[++p];
+				
+				prev_ch = '\0';
+				match = 0;
+				
+				do {
+				    if (p == p_len)
+				        return ABORT_ALL;
+						
+				    if (p_ch == '\\') 
+				    {
+				        if (++p == p_len)
+				            return ABORT_ALL;
+						
+						p_ch = pattern[p];
+						
+				        if (t_ch == p_ch)
+				            match = 1;
+				    } 
+				    else if (p_ch == '-' && prev_ch != '\0' && p < p_EOP && pattern[p + 1] != ']') 
+				    {
+				       	p_ch = pattern[++p];
+						
+				        if (p_ch == '\\') 
+				        {
+							if (++p == p_len)
+				            	return ABORT_ALL;
+								
+				            p_ch = pattern[p];
+				        }
+				        if (t_ch <= p_ch && t_ch >= prev_ch)
+				        {
+				            match = 1;
+				        }
+				        else if (flags.HasFlag(MatchFlags.CASEFOLD) && Char.IsLower(t_ch)) 
+				        {
+				            char t_ch_upper = Char.ToUpper(t_ch);
+				            if (t_ch_upper <= p_ch && t_ch_upper >= prev_ch)
+				                match = 1;
+				        }
+				        p_ch = '\0'; /* This makes "prev_ch" get set to 0. */
+				    } 
+				    else if (p_ch == '[' && p < p_EOP && pattern[p + 1] == ':') 
+				    {
+				        char s;
+				        int i;
+				        for (s = pattern[p += 2], p_ch = pattern[p]; p < p_len && p_ch != ']'; p++) {} /*SHARED ITERATOR*/
+				        if (p == p_EOP)
+				            return ABORT_ALL;
+				        i = p - s - 1;
+				        if (i < 0 || pattern[p - 1] != ':') 
+				        {
+				            /* Didn't find ":]", so treat like a normal set. */
+				            p = s - 2;
+				            p_ch = '[';
+				            if (t_ch == p_ch)
+				                match = 1;
+				            continue;
+				        }
+				        if (CC_EQ(s,i, "alnum")) 
+				        {
+				            if (Char.IsLetterOrDigit(t_ch))
+				                match = 1;
+				        } 
+				        else if (CC_EQ(s,i, "alpha")) 
+				        {
+				            if (Char.IsLetter(t_ch))
+				                match = 1;
+				        } 
+				        else if (CC_EQ(s,i, "blank")) 
+				        {
+				            if (Char.IsWhiteSpace(t_ch))
+				                match = 1;
+				        } 
+				        else if (CC_EQ(s,i, "cntrl")) 
+				        {
+				            if (Char.IsControl(t_ch))
+				                match = 1;
+				        } else if (CC_EQ(s,i, "digit")) 
+				        {
+				            if (Char.IsDigit(t_ch))
+				                match = 1;
+				        } 
+//				        else if (CC_EQ(s,i, "graph")) 
+//				        {
+//				            if (ISGRAPH(t_ch))
+//				                match = 1;
+//				        } 
+				        else if (CC_EQ(s,i, "lower")) 
+				        {
+				            if (Char.IsLower(t_ch))
+				                match = 1;
+				        } 
+//				        else if (CC_EQ(s,i, "print")) 
+//				        {
+//				            if (ISPRINT(t_ch))
+//				                match = 1;
+//				        } 
+				        else if (CC_EQ(s,i, "punct")) 
+				        {
+				            if (Char.IsPunctuation(t_ch))
+				                match = 1;
+				        } 
+				        else if (CC_EQ(s,i, "space")) 
+				        {
+				            if (Char.IsWhiteSpace(t_ch))
+				                match = 1;
+				        } 
+				        else if (CC_EQ(s,i, "upper")) 
+				        {
+				            if (Char.IsUpper(t_ch))
+				                match = 1;
+				            else if (flags.HasFlag(MatchFlags.CASEFOLD) && Char.IsLower(t_ch))
+				                match = 1;
+				        } else if (CC_EQ(s,i, "xdigit")) 
+				        {
+				            if (Char.IsSurrogate(t_ch))
+				                match = 1;
+				        } 
+				        else /* malformed [:class:] string */
+				        {
+				            return ABORT_ALL;
+				        }
+				        p_ch = '\0'; /* This makes "prev_ch" get set to 0. */
+				    } 
+				    else if (t_ch == p_ch)
+				    {
+				        match = 1;
+				    }
+					prev_ch = p_ch;
+				} while ((p_ch = pattern[++p]) != ']');
+				
+				if (match == negated || (flags.HasFlag(MatchFlags.PATHNAME) && t_ch == '/'))
+				    return NOMATCH;
+				
+				continue;
         }
     }
     
