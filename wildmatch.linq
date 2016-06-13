@@ -28,6 +28,7 @@ void Main()
 
 	var texts = new List<string> {
 		"test",
+        "Test",
 		"test/one/tmp/two",
 		"test/one/tmp/fish/two",
 		"test/one/two/three/four",
@@ -48,6 +49,8 @@ void Main()
     var logMatches = false;
     var logNonMatches = false;
     
+    var flags = MatchFlags.PATHNAME | MatchFlags.CASEFOLD;
+    
     if(runAllTests) 
     {
         var output = new List<string>();
@@ -56,8 +59,8 @@ void Main()
             var results = new List<string>();
             
     		texts.ForEach(t => { 
-    			var match = MatchPattern(p, t);
-                var refmatch = ReferenceMatchPattern(p, t);
+    			var match = MatchPattern(p, t, flags);
+                var refmatch = ReferenceMatchPattern(p, t, flags);
     
                 if (match != refmatch 
                 || (logMatches && (match == MATCH && refmatch == MATCH))
@@ -103,13 +106,15 @@ public Process CreateProcess(string executableFilename, string arguments, string
     };
 }
 
-public int ReferenceMatchPattern(string pattern, string text)
+public int ReferenceMatchPattern(string pattern, string text, MatchFlags flags)
 {
     var workingDirectory = basePath + @"\c";
     
     var log = new List<string>();
     
-    using (var build = CreateProcess(workingDirectory + @"\wm.exe", pattern + " " + text, workingDirectory))
+    var arguments = pattern + " " + text + " " + (flags.HasFlag(MatchFlags.CASEFOLD) ? 1 : 0);
+    
+    using (var build = CreateProcess(workingDirectory + @"\wm.exe", arguments, workingDirectory))
     {
         build.Start();
 
@@ -130,6 +135,7 @@ static int NOMATCH = 1;
 static int MATCH = 0;
 static int ABORT_ALL = -1;
 static int ABORT_TO_STARSTAR = -2;
+
 static char NEGATE_CLASS = '!';
 static char NEGATE_CLASS2 = '^';
 
@@ -160,9 +166,9 @@ public bool CC_EQ(char[] pattern, int s, int len, string @class)
 	return new String(pattern, s, len).CompareTo(@class) == 0;
 }
 
-public int MatchPattern(string pattern, string text)
+public int MatchPattern(string pattern, string text, MatchFlags flags)
 {
-    return Match(pattern.ToCharArray(), text.ToCharArray(), 0, 0, MatchFlags.PATHNAME);
+    return Match(pattern.ToCharArray(), text.ToCharArray(), 0, 0, flags);
 }
 
 public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
