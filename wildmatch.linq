@@ -369,7 +369,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				            if (t_ch_upper <= p_ch && t_ch_upper >= prev_ch)
 				                match = 1;
 				        }
-				        p_ch = '\0'; /* This makes "prev_ch" get set to 0. */
+				        p_ch = '\0'; // This makes "prev_ch" get set to 0
 				    } 
 				    else if (p_ch == '[' && p < p_EOP && pattern[p + 1] == ':') 
 				    {
@@ -447,7 +447,8 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				                match = 1;
 				            else if (flags.HasFlag(MatchFlags.CASEFOLD) && Char.IsLower(t_ch))
 				                match = 1;
-				        } else if (CC_EQ(pattern, s, i, "xdigit")) 
+				        } 
+                        else if (CC_EQ(pattern, s, i, "xdigit")) 
 				        {
 				            if (Char.IsSurrogate(t_ch))
 				                match = 1;
