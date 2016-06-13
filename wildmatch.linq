@@ -21,7 +21,8 @@ void Main()
         "sub1/**/test",
         "test/[cb]at/test.txt",
         "test/[^b]at/test.txt",
-        "test/[[:alnum:]]at/test.txt"
+        "test/[[:alnum:]]at/test.txt",
+        "test/[a-b]at/test.txt"
 	};
 
 	var texts = new List<string> {
@@ -354,7 +355,8 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				        int s;
 				        int i;
                         
-				        for (s = p + 2; p < p_len && (p_ch = pattern[p]) != ']'; p++) {} /*SHARED ITERATOR*/
+                        // SHARED ITERATOR
+				        for (s = p + 2; p < p_len && (p_ch = pattern[p]) != ']'; p++) {} 
                         
 				        if (p == p_EOP)
 				            return ABORT_ALL;
@@ -362,7 +364,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				        i = p - s - 1;
 				        if (i < 0 || pattern[p - 1] != ':') 
 				        {
-				            /* Didn't find ":]", so treat like a normal set. */
+				            // Didn't find ":]", so treat like a normal set
 				            p = s - 2;
 				            p_ch = '[';
 				            if (t_ch == p_ch)
@@ -429,11 +431,11 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				            if (Char.IsSurrogate(t_ch))
 				                match = 1;
 				        } 
-				        else /* malformed [:class:] string */
+				        else // Malformed [:class:] string
 				        {
 				            return ABORT_ALL;
 				        }
-				        p_ch = '\0'; /* This makes "prev_ch" get set to 0. */
+				        p_ch = '\0'; // This makes "prev_ch" get set to 0
 				    } 
 				    else if (t_ch == p_ch)
 				    {
