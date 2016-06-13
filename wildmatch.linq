@@ -3,39 +3,39 @@
 void Main()
 {
 	var patterns = new List<string> {
-//		"te*t",
-//		"tes*",
-//		"t*s*",
-//		"test/*/two",
-//		"test/*/*/two",
-//		"test/**/two",
-//		"test/**",
-//		"**/two",
-//		"test/one/*/three/**",
-//		"test/one/*/th*e/**",
-//		"test/*",
-//		"*.txt",
-//        "**/test",
-//        "**/sub2/**.txt",
-//        "**/sub2/*.txt",
-//        "sub1/**/test",
-//        "test/[cb]at/test.txt",
-//        "test/[^b]at/test.txt",
+		"te*t",
+		"tes*",
+		"t*s*",
+		"test/*/two",
+		"test/*/*/two",
+		"test/**/two",
+		"test/**",
+		"**/two",
+		"test/one/*/three/**",
+		"test/one/*/th*e/**",
+		"test/*",
+		"*.txt",
+        "**/test",
+        "**/sub2/**.txt",
+        "**/sub2/*.txt",
+        "sub1/**/test",
+        "test/[cb]at/test.txt",
+        "test/[^b]at/test.txt",
         "test/[[:alnum:]]at/test.txt"
 	};
 
 	var texts = new List<string> {
-//		"test",
-//		"test/one/tmp/two",
-//		"test/one/tmp/fish/two",
-//		"test/one/two/three/four",
-//		"test.txt",
-//		"test/test.txt",
-//		"test.txtfile",
-//        "sub1/test",
-//        "sub1/sub2/test.txt",
-//        "test/cat/test.txt",
-//        "test/bag/test.txt",
+		"test",
+		"test/one/tmp/two",
+		"test/one/tmp/fish/two",
+		"test/one/two/three/four",
+		"test.txt",
+		"test/test.txt",
+		"test.txtfile",
+        "sub1/test",
+        "sub1/sub2/test.txt",
+        "test/cat/test.txt",
+        "test/bag/test.txt",
         "test/bat/test.txt"
 	};
 	
@@ -43,8 +43,8 @@ void Main()
     var br = Environment.NewLine;
 	
     var runAllTests = true;
-    var logMatches = true;
-    var logNonMatches = true;
+    var logMatches = false;
+    var logNonMatches = false;
     
     if(runAllTests) 
     {
@@ -71,14 +71,14 @@ void Main()
 
             if (results.Count > 0)
             {
-                output.Add(br);
-                output.Add(p);
-                output.Add(divider);
-                output.AddRange(results);
+                output.Add("PATTERN: " + p + br + divider + br + string.Join(br, results) + br);
             }
     	});
         
-        string.Join(br, output).Dump();
+        if(output.Count > 0)
+            string.Join(br, output).Dump();
+        else
+            Console.WriteLine("All test outputs match reference outputs");
     }
 }
 
