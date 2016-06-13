@@ -151,9 +151,9 @@ public bool IsGlobSpecial(char c)
     return c == '*' || c == '?' || c == '[' || c == '\\';
 }
 
-public bool CC_EQ(char c, int len, string @class)
+public bool CC_EQ(char[] pattern, int s, int len, string @class)
 {
-	throw new NotImplementedException();
+	return new String(pattern, s, len).CompareTo(@class) == 0;
 }
 
 public int MatchPattern(string pattern, string text)
@@ -300,6 +300,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
                 }
                 
                 return ABORT_ALL;
+            // Match character ranges
 			case '[':
 				p_ch = pattern[++p];
 				
@@ -350,11 +351,14 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				    } 
 				    else if (p_ch == '[' && p < p_EOP && pattern[p + 1] == ':') 
 				    {
-				        char s;
+				        int s;
 				        int i;
-				        for (s = pattern[p += 2], p_ch = pattern[p]; p < p_len && p_ch != ']'; p++) {} /*SHARED ITERATOR*/
+                        
+				        for (s = p + 2; p < p_len && (p_ch = pattern[p]) != ']'; p++) {} /*SHARED ITERATOR*/
+                        
 				        if (p == p_EOP)
 				            return ABORT_ALL;
+                            
 				        i = p - s - 1;
 				        if (i < 0 || pattern[p - 1] != ':') 
 				        {
@@ -365,62 +369,62 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				                match = 1;
 				            continue;
 				        }
-				        if (CC_EQ(s,i, "alnum")) 
+				        if (CC_EQ(pattern, s, i, "alnum")) 
 				        {
 				            if (Char.IsLetterOrDigit(t_ch))
 				                match = 1;
 				        } 
-				        else if (CC_EQ(s,i, "alpha")) 
+				        else if (CC_EQ(pattern, s, i, "alpha")) 
 				        {
 				            if (Char.IsLetter(t_ch))
 				                match = 1;
 				        } 
-				        else if (CC_EQ(s,i, "blank")) 
+				        else if (CC_EQ(pattern, s, i, "blank")) 
 				        {
 				            if (Char.IsWhiteSpace(t_ch))
 				                match = 1;
 				        } 
-				        else if (CC_EQ(s,i, "cntrl")) 
+				        else if (CC_EQ(pattern, s, i, "cntrl")) 
 				        {
 				            if (Char.IsControl(t_ch))
 				                match = 1;
-				        } else if (CC_EQ(s,i, "digit")) 
+				        } else if (CC_EQ(pattern, s, i, "digit")) 
 				        {
 				            if (Char.IsDigit(t_ch))
 				                match = 1;
 				        } 
-//				        else if (CC_EQ(s,i, "graph")) 
+//				        else if (CC_EQ(pattern, s, i, "graph")) 
 //				        {
 //				            if (ISGRAPH(t_ch))
 //				                match = 1;
 //				        } 
-				        else if (CC_EQ(s,i, "lower")) 
+				        else if (CC_EQ(pattern, s, i, "lower")) 
 				        {
 				            if (Char.IsLower(t_ch))
 				                match = 1;
 				        } 
-//				        else if (CC_EQ(s,i, "print")) 
+//				        else if (CC_EQ(pattern, s, i, "print")) 
 //				        {
 //				            if (ISPRINT(t_ch))
 //				                match = 1;
 //				        } 
-				        else if (CC_EQ(s,i, "punct")) 
+				        else if (CC_EQ(pattern, s, i, "punct")) 
 				        {
 				            if (Char.IsPunctuation(t_ch))
 				                match = 1;
 				        } 
-				        else if (CC_EQ(s,i, "space")) 
+				        else if (CC_EQ(pattern, s, i, "space")) 
 				        {
 				            if (Char.IsWhiteSpace(t_ch))
 				                match = 1;
 				        } 
-				        else if (CC_EQ(s,i, "upper")) 
+				        else if (CC_EQ(pattern, s, i, "upper")) 
 				        {
 				            if (Char.IsUpper(t_ch))
 				                match = 1;
 				            else if (flags.HasFlag(MatchFlags.CASEFOLD) && Char.IsLower(t_ch))
 				                match = 1;
-				        } else if (CC_EQ(s,i, "xdigit")) 
+				        } else if (CC_EQ(pattern, s, i, "xdigit")) 
 				        {
 				            if (Char.IsSurrogate(t_ch))
 				                match = 1;
@@ -436,7 +440,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 				        match = 1;
 				    }
 					prev_ch = p_ch;
-				} while ((p_ch = pattern[++p]) != ']');
+				} while (p < p_len && (p_ch = pattern[++p]) != ']');
 				
 				if (match == negated || (flags.HasFlag(MatchFlags.PATHNAME) && t_ch == '/'))
 				    return NOMATCH;
