@@ -21,6 +21,7 @@ void Main()
         "sub1/**/test",
         "test/[cb]at/test.txt",
         "test/[^b]at/test.txt",
+        "test/[!b]at/test.txt",
         "test/[[:alnum:]]at/test.txt",
         "test/[a-b]at/test.txt"
 	};
@@ -129,6 +130,8 @@ static int NOMATCH = 1;
 static int MATCH = 0;
 static int ABORT_ALL = -1;
 static int ABORT_TO_STARSTAR = -2;
+static char NEGATE_CLASS = '!';
+static char NEGATE_CLASS2 = '^';
 
 [Flags]
 public enum MatchFlags
@@ -305,7 +308,7 @@ public int Match(char[] pattern, char[] text, int p, int t, MatchFlags flags)
 			case '[':
 				p_ch = pattern[++p];
 				
-				negated = (p_ch == '^') ? 1 : 0;
+				negated = (p_ch == NEGATE_CLASS || p_ch == NEGATE_CLASS2) ? 1 : 0;
 
 				if (negated == 1)
 					p_ch = pattern[++p];
